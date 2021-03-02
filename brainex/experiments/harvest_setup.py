@@ -254,10 +254,14 @@ def run_exp_set(exp_set, mp_args, num_sample, query_split, cases_split,
             experiment_genex_dynamic(mp_args, **es, num_sample=num_sample, query_split=query_split,
                                      _lb_opt=_lb_opt, _radius=radius, use_spark=use_spark, loi_range=loi_range, st=st,
                                      paa_seg=n_segment)
-        elif test_option == 'BrainEX':
+        elif test_option.lower() == 'BrainEx'.lower():
             experiment_BrainEX(mp_args, **es, num_sample=num_sample, query_split=query_split,
                                _lb_opt=_lb_opt, _radius=radius, use_spark=use_spark, loi_range=loi_range, st=st,
-                               n_segment=n_segment, best_ks=best_ks)
+                               n_segment=n_segment, best_ks=best_ks, run_genex=True)
+        elif test_option.lower() == 'BrainEXwithoutGenex'.lower():
+                experiment_BrainEX(mp_args, **es, num_sample=num_sample, query_split=query_split,
+                               _lb_opt=_lb_opt, _radius=radius, use_spark=use_spark, loi_range=loi_range, st=st,
+                               n_segment=n_segment, best_ks=best_ks, run_genex=False)
         else:
             raise Exception('Unrecognized test option, it must be one of the following: ' + str(options))
 

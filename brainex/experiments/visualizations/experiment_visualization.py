@@ -16,7 +16,7 @@ if __name__ == '__main__':
     matplotlib.rc('font', **font)
 
     notes = ''
-    root = '/home/apocalyvec/data/UCR_BrainEX_test/Jul-11-2020-22-N-UCR_test_eu_soi_0-to-50000'
+    root = '/media/apocalyvec/bf656169-108a-4b6c-8d6a-6ee0c95ae1eb/DropBox/Dropbox/data/UCR_BrainEX_test/Feb-28-2021-2-N-UCR_test_eu_soi_0-to-50000'
     file_list = os.listdir(root)
     file_list = [os.path.join(root, x) for x in file_list]
 
@@ -40,8 +40,8 @@ if __name__ == '__main__':
         # bin_paa_prep_time = []
         # bin_sax_prep_time = []
 
-        bin_bx_prep_time = []
         bin_bxdss_prep_time = []
+        bin_gx_prep_time = []
 
         bin_size = []
 
@@ -49,12 +49,12 @@ if __name__ == '__main__':
         bin_qpaa_time = []  # query paa
         bin_qsax_time = []  # query paa
         bin_qgx_time = []  # query genex
-        bin_qdss_time = []  # query genex
+        bin_qbxdss_time = []  # query genex
 
         bin_qpaa_error = []
         bin_qsax_error = []
         bin_qgx_error = []
-        bin_qdss_error = []
+        bin_qbxdss_error = []
 
         for k in best_ks:
             fd_k = [x for x in fd if 'k=' + str(k) + '.csv' == x.split('_')[-1]]
@@ -71,31 +71,31 @@ if __name__ == '__main__':
                 qbf_time = [x for x in df.iloc[:, 8].values if not np.isnan(x)]
                 qpaa_time = [x for x in df.iloc[:, 9].values if not np.isnan(x)]
                 qsax_time = [x for x in df.iloc[:, 10].values if not np.isnan(x)]
-                qgx_time = [x for x in df.iloc[:, 11].values if not np.isnan(x)]
-                qdss_time = [x for x in df.iloc[:, 12].values if not np.isnan(x)]
+                qdss_time = [x for x in df.iloc[:, 11].values if not np.isnan(x)]
+                qgx_time = [x for x in df.iloc[:, 12].values if not np.isnan(x)]
 
                 qpaa_error = [x for x in df.iloc[:, 13].values if not np.isnan(x)]
                 qsax_error = [x for x in df.iloc[:, 14].values if not np.isnan(x)]
-                qgx_error = [x for x in df.iloc[:, 15].values if not np.isnan(x)]
-                qdss_error = [x for x in df.iloc[:, 16].values if not np.isnan(x)]
+                qdss_error = [x for x in df.iloc[:, 15].values if not np.isnan(x)]
+                qgx_error = [x for x in df.iloc[:, 16].values if not np.isnan(x)]
 
                 bin_size.append(size)
 
                 # bin_paa_prep_time.append(paa_prep_time)
                 # bin_sax_prep_time.append(sax_prep_time)
-                bin_bx_prep_time.append(bx_prep_time)
-                bin_bxdss_prep_time.append(dss_prep_time)
+                bin_bxdss_prep_time.append(bx_prep_time)
+                bin_gx_prep_time.append(dss_prep_time)
 
                 bin_qbf_time.append(np.mean(qbf_time))
                 bin_qsax_time.append(np.mean(qsax_time))
                 bin_qpaa_time.append(np.mean(qpaa_time))
                 bin_qgx_time.append(np.mean(qgx_time))
-                bin_qdss_time.append(np.mean(qdss_time))
+                bin_qbxdss_time.append(np.mean(qdss_time))
 
                 bin_qpaa_error.append(np.mean(qpaa_error))
                 bin_qsax_error.append(np.mean(qsax_error))
                 bin_qgx_error.append(np.mean(qgx_error))
-                bin_qdss_error.append(np.mean(qdss_error))
+                bin_qbxdss_error.append(np.mean(qdss_error))
 
             note = '\n Each dot represents on dataset'
             prep_line = np.linspace(min(bin_size), max(bin_size), 100)
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             # plt.legend()
             # plt.show()
 
-            # Plot the Query Time
+            # Plot the Query Time  ####################################################################################
             fig, ax = plt.subplots()
             fig.set_size_inches(15, 8)
 
@@ -127,9 +127,9 @@ if __name__ == '__main__':
             # plt.scatter(bin_size, bin_qbf_time, c='red', label='Brute Force Query Time')
             # plt.scatter(bin_size, bin_qpaa_time, c='orange', label='PAA Query Time')
 
-            model = np.poly1d(np.polyfit(bin_size, bin_qbf_time, 3))  # change the Y vector in this line
-            plt.plot(prep_line, model(prep_line), label='Brute Force Query Time Fitted', c='red')
-            plt.scatter(bin_size, bin_qbf_time, c='red', label='Brute Force Query Time')
+            # model = np.poly1d(np.polyfit(bin_size, bin_qbf_time, 3))  # change the Y vector in this line
+            # plt.plot(prep_line, model(prep_line), label='Brute Force Query Time Fitted', c='red')
+            # plt.scatter(bin_size, bin_qbf_time, c='red', label='Brute Force Query Time')
 
             model = np.poly1d(np.polyfit(bin_size, bin_qsax_time, 3))  # change the Y vector in this line
             plt.plot(prep_line, model(prep_line), label='SAX Query Time Fitted', c='orange')
@@ -139,13 +139,13 @@ if __name__ == '__main__':
             plt.plot(prep_line, model(prep_line), label='PAA Query Time Fitted', c='magenta')
             plt.scatter(bin_size, bin_qpaa_time, c='magenta', label='PAA Query Time')
 
-            model = np.poly1d(np.polyfit(bin_size, bin_qgx_time, 3))  # change the Y vector in this line
-            plt.plot(prep_line, model(prep_line), label='BrainEx Query Time Fitted', c='blue')
-            plt.scatter(bin_size, bin_qgx_time, c='blue', label='BrainEx Query Time')
+            # model = np.poly1d(np.polyfit(bin_size, bin_qgx_time, 3))  # change the Y vector in this line
+            # plt.plot(prep_line, model(prep_line), label='Genex Query Time Fitted', c='blue')
+            # plt.scatter(bin_size, bin_qgx_time, c='blue', label='Genex Query Time')
 
-            model = np.poly1d(np.polyfit(bin_size, bin_qdss_time, 3))  # change the Y vector in this line
-            plt.plot(prep_line, model(prep_line), label='DSS Cluster Time Fitted', c='green')
-            plt.scatter(bin_size, bin_qdss_time, c='green', label='DSS Query Time')
+            model = np.poly1d(np.polyfit(bin_size, bin_qbxdss_time, 3))  # change the Y vector in this line
+            plt.plot(prep_line, model(prep_line), label='BrainEx Query Time Fitted', c='green')
+            plt.scatter(bin_size, bin_qbxdss_time, c='green', label='BrainEx Query Time')
 
             plt.ylabel('Time (second)')
             plt.xlabel('Time series length (number of data points)')
@@ -153,7 +153,7 @@ if __name__ == '__main__':
             plt.legend()
             plt.show()
 
-            # Plot the accuracy
+            # Plot the accuracy  ####################################################################################
             fig, ax = plt.subplots()
             fig.set_size_inches(15, 8)
             # if dt == 'ch':  # normalize chebyshev error
@@ -172,13 +172,13 @@ if __name__ == '__main__':
             plt.plot(prep_line, model(prep_line), label='PAA Error Fitted', c='magenta')
             plt.scatter(bin_size, bin_qpaa_error, c='magenta', label='PAA Query Error')
 
-            model = np.poly1d(np.polyfit(bin_size, bin_qgx_error, 3))  # change the Y vector in this line
-            plt.plot(prep_line, model(prep_line), label='BrainEx Query Error Fitted', c='blue')
-            plt.scatter(bin_size, bin_qgx_error, c='blue', label='BrainEx Query Error')
+            # model = np.poly1d(np.polyfit(bin_size, bin_qgx_error, 3))  # change the Y vector in this line
+            # plt.plot(prep_line, model(prep_line), label='Genex Query Error Fitted', c='blue')
+            # plt.scatter(bin_size, bin_qgx_error, c='blue', label='Genex Query Error')
 
-            model = np.poly1d(np.polyfit(bin_size, bin_qdss_error, 3))  # change the Y vector in this line
-            plt.plot(prep_line, model(prep_line), label='DSS Query Time Fitted', c='green')
-            plt.scatter(bin_size, bin_qdss_error, c='green', label='DSS Query Error')
+            model = np.poly1d(np.polyfit(bin_size, bin_qbxdss_error, 3))  # change the Y vector in this line
+            plt.plot(prep_line, model(prep_line), label='BrainEx Query Error Fitted', c='green')
+            plt.scatter(bin_size, bin_qbxdss_error, c='green', label='BrainEx Query Error')
             plt.ylabel('Normalized Error')
             plt.xlabel('Data size (number of data points)')
             # plt.ylim(-0.0025, 0.14)
@@ -188,14 +188,14 @@ if __name__ == '__main__':
 
             print('PAA ERROR on average is: ' + str(np.mean(bin_qpaa_error)))
             print('SAX ERROR on average is: ' + str(np.mean(bin_qsax_error)))
-            print('BrainEx ERROR on average is: ' + str(np.mean(bin_qgx_error)))
-            print('DSS ERROR on average is: ' + str(np.mean(bin_qdss_error)))
+            print('Genex ERROR on average is: ' + str(np.mean(bin_qgx_error)))
+            print('BrainEx ERROR on average is: ' + str(np.mean(bin_qbxdss_error)))
 
             print('PAA query TIME on average is: ' + str(np.mean(bin_qpaa_time)))
             print('SAX query TIME on average is: ' + str(np.mean(bin_qsax_time)))
-            print('BrainEx query TIME on average is: ' + str(np.mean(bin_qgx_time)))
-            print('DSS query TIME on average is: ' + str(np.mean(bin_qdss_time)))
+            print('Genex query TIME on average is: ' + str(np.mean(bin_qgx_time)))
+            print('BrainEx query TIME on average is: ' + str(np.mean(bin_qbxdss_time)))
             pass
-
-        print('BrainEx Clustering on average took: ' + str(np.mean(bin_bx_prep_time)))
-        print('DSS Clustering on average took: ' + str(np.mean(bin_bxdss_prep_time)))
+        print()
+        print('BrainEx Clustering on average took: ' + str(np.mean(bin_bxdss_prep_time)))
+        print('Genex Clustering on average took: ' + str(np.mean(bin_gx_prep_time)))

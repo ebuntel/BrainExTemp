@@ -40,9 +40,9 @@ def lb_kim_sequence(candidate_seq, query_sequence):
 def paa_compress(a: np.ndarray, paa_seg, paa: PiecewiseAggregateApproximation = None):
     if not paa:
         paa = PiecewiseAggregateApproximation(min(len(a), paa_seg))
-        compressed = paa.fit_transform(a)
+        compressed = paa.fit_transform(a.reshape(1, -1))
     else:
-        compressed = paa.transform(a)
+        compressed = paa.transform(a.reshape(1, -1))
 
     compressed = np.squeeze(compressed, axis=-1)
     # TODO do not squeeze all the dimension if the ts is multi-dimensional
@@ -56,9 +56,9 @@ def paa_compress(a: np.ndarray, paa_seg, paa: PiecewiseAggregateApproximation = 
 def sax_compress(a: np.ndarray, sax_seg, sax: SymbolicAggregateApproximation = None):
     if not sax:
         sax = SymbolicAggregateApproximation(n_segments=min(len(a), sax_seg), alphabet_size_avg=2 ** sax_seg)
-        compressed = sax.fit_transform(a)
+        compressed = sax.fit_transform(np.expand_dims(a, axis=0))
     else:
-        compressed = sax.transform(a)
+        compressed = sax.transform(np.expand_dims(a, axis=0))
     compressed = np.squeeze(compressed, axis=-1)
     # TODO do not squeeze all the dimension if the ts is multi-dimensional
     compressed = np.squeeze(compressed, axis=0)

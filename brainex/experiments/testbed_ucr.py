@@ -56,15 +56,16 @@ if __name__ == "__main__":
     '''
     check the docstring of the above function - run_ucr_test for details regarding the parameters
     '''
-    dataset = '/home/apocalyvec/data/UCRArchive_2018'
+    dataset = '/media/apocalyvec/bf656169-108a-4b6c-8d6a-6ee0c95ae1eb/DropBox/Dropbox/data/UCRArchive_2018'
     # dataset = '/Users/Leo/Documents/data/UCRArchive_2018'
-    output = '/home/apocalyvec/data/UCR_BrainEX_test'
+    output = '/media/apocalyvec/bf656169-108a-4b6c-8d6a-6ee0c95ae1eb/DropBox/Dropbox/data/UCR_BrainEX_test'
     # output = '/Users/Leo/PycharmProjects/BrainEX/brainex/experiments/results/test'
 
     ds_soi = [0, 50000]  # dataset size of interest, see the docstring of run_ucr_test for details
     # ds_soi = [50000, 1500000]  # dataset size of interest, see the docstring of run_ucr_test for details
     exclude_dataset = ['Missing_value_and_variable_length_datasets_adjusted', '.DS_Store']
-    dist_types_to_test = ['eu', 'ma', 'ch']
+    dist_types_to_test = ['eu']
+    # dist_types_to_test = ['eu', 'ma', 'ch']
     # dist_types_to_test = ['ma', 'ch']
     # dist_types_to_test = ['ch']
     ex_config = {
@@ -76,7 +77,8 @@ if __name__ == "__main__":
         'loi_range': 1.0,
         'st': 0.1,
         'n_segment': 3,
-        'test_option': 'BrainEX',
+        # 'test_option': 'BrainEX',
+        'test_option': 'BrainEXwithoutGenex',
 
         'cases_split': 0.01,
         'best_ks': [1, 5, 15]

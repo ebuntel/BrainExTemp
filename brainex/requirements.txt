@@ -7,4 +7,5 @@ pandas
 tslearn
 pyspark
 dtw
+h5py
 git+git://github.com/ApocalyVec/fastdtw.git

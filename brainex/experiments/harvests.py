@@ -18,7 +18,7 @@ from brainex.utils.gxe_utils import from_csv
 
 def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample, query_split,
                        dist_type, _lb_opt, _radius, use_spark: bool, loi_range: float, st: float,
-                       n_segment: float, best_ks):
+                       n_segment: float, best_ks, run_genex: bool = True):
     # set up where to save the results
     result_headers = np.array(
         [['k',
@@ -73,7 +73,8 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
 
             # normalize the external query on the scale of the train
             # test set may have different max seq len
-            query_test = bxe_test.get_random_seq_of_len(min(query_len, bxe_test.get_max_seq_len()), seed=i * j, with_data=True,
+            query_test = bxe_test.get_random_seq_of_len(min(query_len, bxe_test.get_max_seq_len()), seed=i * j,
+                                                        with_data=True,
                                                         normalize=False).get_data()
             query_test = bxe.normalize(query_test)
 
@@ -104,8 +105,10 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
             len(query_set)))
 
         query_result_bf, bf_time = run_query(bxe, q, best_k=max(best_ks), algo='bf', _lb_opt=_lb_opt, _radius=_radius)
-        query_result_paa, paa_time = run_query(bxe, q, best_k=max(best_ks), algo='paa', _lb_opt=_lb_opt, _radius=_radius)
-        query_result_sax, sax_time = run_query(bxe, q, best_k=max(best_ks), algo='sax', _lb_opt=_lb_opt, _radius=_radius)
+        query_result_paa, paa_time = run_query(bxe, q, best_k=max(best_ks), algo='paa', _lb_opt=_lb_opt,
+                                               _radius=_radius)
+        query_result_sax, sax_time = run_query(bxe, q, best_k=max(best_ks), algo='sax', _lb_opt=_lb_opt,
+                                               _radius=_radius)
 
         q_records[str(q)] = {'bf_query_time': bf_time, 'paa_query_time': paa_time, 'sax_query_time': sax_time,
                              'bx_query_time': {}, 'gx_query_time': {},
@@ -122,25 +125,34 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
             q_records[str(q)]['bx_match'][k] = query_result_bx
 
     print('Performing clustering with Genex...')
-    bxe.stop()
-    del bxe
-    bxe = from_csv(data, num_worker=1, driver_mem=mp_args['driver_mem'],  # use worker 1 for gx
-                   max_result_mem=mp_args['max_result_mem'],
-                   feature_num=feature_num, use_spark=use_spark, _rows_to_consider=num_sample,
-                   header=None)
-    cluster_start_time = time.time()
-    bxe.build(st=st, dist_type=dist_type, loi=loi, _use_dss=False, _use_dynamic=False)  #  use dss false for gx
-    cluster_time_gx = time.time() - cluster_start_time
-    print('Genex cluster took ' + str(cluster_time_gx) + ' sec')
+    if run_genex:
 
-    for k in best_ks:
-        print('Evaluating GX for k = ' + str(k))
-        for i, q in enumerate(query_set):
-            print('Dataset: ' + data + ' - dist_type: ' + dist_type + '- Querying #' + str(i) + ' of ' + str(
-                len(query_set)))
-            query_result_dss, dss_time = run_query(bxe, q, best_k=k, algo='gx', _lb_opt=_lb_opt, _radius=0)  # use radius 0 for gx
-            q_records[str(q)]['gx_query_time'][k] = dss_time
-            q_records[str(q)]['gx_match'][k] = query_result_dss
+        bxe.stop()
+        del bxe
+        bxe = from_csv(data, num_worker=1, driver_mem=mp_args['driver_mem'],  # use worker 1 for gx
+                       max_result_mem=mp_args['max_result_mem'],
+                       feature_num=feature_num, use_spark=use_spark, _rows_to_consider=num_sample,
+                       header=None)
+        cluster_start_time = time.time()
+        bxe.build(st=st, dist_type=dist_type, loi=loi, _use_dss=False, _use_dynamic=False)  # use dss false for gx
+        cluster_time_gx = time.time() - cluster_start_time
+        print('Genex cluster took ' + str(cluster_time_gx) + ' sec')
+
+        for k in best_ks:
+            print('Evaluating GX for k = ' + str(k))
+            for i, q in enumerate(query_set):
+                print('Dataset: ' + data + ' - dist_type: ' + dist_type + '- Querying #' + str(i) + ' of ' + str(
+                    len(query_set)))
+                query_result_dss, dss_time = run_query(bxe, q, best_k=k, algo='gx', _lb_opt=_lb_opt,
+                                                       _radius=0)  # use radius 0 for gx
+                q_records[str(q)]['gx_query_time'][k] = dss_time
+                q_records[str(q)]['gx_match'][k] = query_result_dss
+    else:
+        cluster_time_gx = np.NaN
+        for k in best_ks:
+            for i, q in enumerate(query_set):
+                q_records[str(q)]['gx_query_time'][k] = np.NaN
+                q_records[str(q)]['gx_match'][k] = [(np.NaN, None) for i in range(k)]
 
     # add the meta information and preprocessing times
     for k in best_ks:
@@ -170,15 +182,15 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
                                          ignore_index=True)  # append the query times
 
             # add the accuracies
-            for bf_r, paa_r, sax_r, bx_r, dynamic_r in zip(this_record['bf_match'][:k],
-                                                           this_record['paa_match'][:k],
-                                                           this_record['sax_match'][:k],
-                                                           this_record['bx_match'][k],
-                                                           this_record['gx_match'][k]):  # resolve the query matches
+            for bf_r, paa_r, sax_r, bx_r, gx_r in zip(this_record['bf_match'][:k],
+                                                      this_record['paa_match'][:k],
+                                                      this_record['sax_match'][:k],
+                                                      this_record['bx_match'][k],
+                                                      this_record['gx_match'][k]):  # resolve the query matches
                 diff_saxbf = abs(sax_r[0] - bf_r[0])
                 diff_paabf = abs(paa_r[0] - bf_r[0])
                 diff_bxbf = abs(bx_r[0] - bf_r[0])
-                diff_gxbf = abs(dynamic_r[0] - bf_r[0])
+                diff_gxbf = abs(gx_r[0] - bf_r[0])
 
                 overall_diff_saxbf_list.append(diff_saxbf)
                 overall_diff_paabf_list.append(diff_paabf)
@@ -193,7 +205,7 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
                                               'paa_dist': paa_r[0], 'paa_match': paa_r[1],
                                               'sax_dist': sax_r[0], 'sax_match': sax_r[1],
                                               'bx_dist': bx_r[0], 'bx_match': bx_r[1],
-                                              'gx_dist': dynamic_r[0], 'gx_match': dynamic_r[1]
+                                              'gx_dist': gx_r[0], 'gx_match': gx_r[1]
                                               }, ignore_index=True)
             print('Current PAA error for query is ' + str(np.mean(overall_diff_paabf_list)))
             print('Current SAX error for query is ' + str(np.mean(overall_diff_saxbf_list)))
@@ -211,7 +223,7 @@ def run_query(gxe, q, best_k, algo, _lb_opt, _radius):
     start = time.time()
     if algo == 'bf':
         q_result = gxe.query_brute_force(query=q, best_k=best_k, _use_cache=False)
-    elif algo == 'bx' or 'gx':
+    elif algo == 'bx' or algo == 'gx':
         q_result = gxe.query(query=q, best_k=15, _lb_opt=_lb_opt, _radius=_radius)
     else:
         q_result = gxe.query_brute_force(query=q, best_k=15, _use_cache=False, _piecewise=algo,
@@ -222,7 +234,8 @@ def run_query(gxe, q, best_k, algo, _lb_opt, _radius):
     return q_result, q_time
 
 
-def experiment_GENEX(mp_args, dataset: str, queryset: str, output: str, feature_num, dist_type, _lb_opt, _radius, use_spark: bool, st: float):
+def experiment_GENEX(mp_args, dataset: str, queryset: str, output: str, feature_num, dist_type, _lb_opt, _radius,
+                     use_spark: bool, st: float):
     # set up where to save the results
     result_headers = np.array(
         [['bx_preprocess_time',
@@ -232,7 +245,7 @@ def experiment_GENEX(mp_args, dataset: str, queryset: str, output: str, feature_
           'bf_dist', 'bf_match',  # bf matches
           'bx_dist', 'bx_match',  # gx matches
           'data_size'
-        ]])  # meta info about this experiment
+          ]])  # meta info about this experiment
 
     overall_diff_bxbf_list = []
     q_records = {}
@@ -263,7 +276,7 @@ def experiment_GENEX(mp_args, dataset: str, queryset: str, output: str, feature_
     print('Evaluating Query with BF and Bx')
     for i, q in enumerate(query_set):
         print('Dataset: ' + dataset + ' - dist_type: ' + dist_type + '- Querying #' + str(i) + ' of ' + str(
-            len(query_set)) )
+            len(query_set)))
         query_result_bf, bf_time = run_query(bxe, q, best_k=1, algo='bf', _lb_opt=_lb_opt, _radius=_radius)
         query_result_bx, bx_time = run_query(bxe, q, best_k=1, algo='bx', _lb_opt=_lb_opt, _radius=_radius)
         q_records[str(q)] = {'bf_query_time': bf_time, 'bx_query_time': bx_time,
@@ -286,7 +299,7 @@ def experiment_GENEX(mp_args, dataset: str, queryset: str, output: str, feature_
 
         # add the accuracies
         for bf_r, bx_r in zip(this_record['bf_match'],
-                                                       this_record['bx_match']):  # resolve the query matches
+                              this_record['bx_match']):  # resolve the query matches
             diff_bxbf = abs(bx_r[0] - bf_r[0])
             overall_diff_bxbf_list.append(diff_bxbf)
             result_df = result_df.append({'dist_diff_btw_bx_bf': diff_bxbf,
