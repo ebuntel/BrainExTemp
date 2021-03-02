@@ -16,7 +16,7 @@ if __name__ == '__main__':
     matplotlib.rc('font', **font)
 
     notes = ''
-    root = '/media/apocalyvec/bf656169-108a-4b6c-8d6a-6ee0c95ae1eb/DropBox/Dropbox/data/UCR_BrainEX_test/Feb-28-2021-2-N-UCR_test_eu_soi_0-to-50000'
+    root = '/media/apocalyvec/bf656169-108a-4b6c-8d6a-6ee0c95ae1eb/DropBox/Dropbox/data/UCR_BrainEx_experiment/euclidean_partial_SMALL'
     file_list = os.listdir(root)
     file_list = [os.path.join(root, x) for x in file_list]
 
@@ -101,23 +101,23 @@ if __name__ == '__main__':
             prep_line = np.linspace(min(bin_size), max(bin_size), 100)
 
             # Plot the Cluster Time
-            # fig, ax = plt.subplots()
-            # fig.set_size_inches(15, 8)
-            # plt.title('Cluster time across Data Size for Distance Type: ' + dt_dict[dt] + note)
-            # # plt.scatter(bin_size, bin_paa_prep_time, c='blue', label='PAA Preparation Time')
-            #
-            # model = np.poly1d(np.polyfit(bin_size, bin_gx_prep_time, 3))
-            # plt.plot(prep_line, model(prep_line), label='BrainEx Cluster Time Fitted', c='cyan')
-            # plt.scatter(bin_size, bin_gx_prep_time, c='cyan', label='BrainEx Cluster Time', marker='x')
-            #
-            # model = np.poly1d(np.polyfit(bin_size, bin_dss_prep_time, 3))
-            # plt.plot(prep_line, model(prep_line), label='DSS Cluster Time Fitted', c='green')
-            # plt.scatter(bin_size, bin_dss_prep_time, c='green', label='DSS Cluster Time', marker='x')
-            # plt.ylabel('Time (second)')
-            # plt.xlabel('Time series length (number of data points)')
-            # # plt.ylim(-1, 25)
-            # plt.legend()
-            # plt.show()
+            fig, ax = plt.subplots()
+            fig.set_size_inches(15, 8)
+            plt.title('Cluster time across Data Size for Distance Type: ' + dt_dict[dt] + note)
+            # plt.scatter(bin_size, bin_paa_prep_time, c='blue', label='PAA Preparation Time')
+
+            model = np.poly1d(np.polyfit(bin_size, bin_gx_prep_time, 3))
+            plt.plot(prep_line, model(prep_line), label='Genex Cluster Time Fitted', c='cyan')
+            plt.scatter(bin_size, bin_gx_prep_time, c='cyan', label='BrainEx Cluster Time', marker='x')
+
+            model = np.poly1d(np.polyfit(bin_size, bin_bxdss_prep_time, 3))
+            plt.plot(prep_line, model(prep_line), label='BrainEx Cluster Time Fitted', c='green')
+            plt.scatter(bin_size, bin_bxdss_prep_time, c='green', label='DSS Cluster Time', marker='x')
+            plt.ylabel('Time (second)')
+            plt.xlabel('Time series length (number of data points)')
+            # plt.ylim(-1, 25)
+            plt.legend()
+            plt.show()
 
             # Plot the Query Time  ####################################################################################
             fig, ax = plt.subplots()

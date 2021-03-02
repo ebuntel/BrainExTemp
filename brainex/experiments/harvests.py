@@ -18,7 +18,7 @@ from brainex.utils.gxe_utils import from_csv
 
 def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample, query_split,
                        dist_type, _lb_opt, _radius, use_spark: bool, loi_range: float, st: float,
-                       n_segment: float, best_ks, run_genex: bool = True):
+                       n_segment: float, best_ks, run_genex: bool = True, run_brainex: bool = True, run_bruteforce: bool = True):
     # set up where to save the results
     result_headers = np.array(
         [['k',
@@ -103,8 +103,10 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
     for i, q in enumerate(query_set):
         print('Dataset: ' + data + ' - dist_type: ' + dist_type + '- Querying #' + str(i) + ' of ' + str(
             len(query_set)))
-
-        query_result_bf, bf_time = run_query(bxe, q, best_k=max(best_ks), algo='bf', _lb_opt=_lb_opt, _radius=_radius)
+        if run_bruteforce:
+            query_result_bf, bf_time = run_query(bxe, q, best_k=max(best_ks), algo='bf', _lb_opt=_lb_opt, _radius=_radius)
+        else:
+            query_result_bf, bf_time = [(np.NaN, None) for i in range(np.max(best_ks))], np.NaN
         query_result_paa, paa_time = run_query(bxe, q, best_k=max(best_ks), algo='paa', _lb_opt=_lb_opt,
                                                _radius=_radius)
         query_result_sax, sax_time = run_query(bxe, q, best_k=max(best_ks), algo='sax', _lb_opt=_lb_opt,
@@ -120,7 +122,12 @@ def experiment_BrainEX(mp_args, data: str, output: str, feature_num, num_sample,
         for i, q in enumerate(query_set):
             print('Dataset: ' + data + ' - dist_type: ' + dist_type + '- Querying #' + str(i) + ' of ' + str(
                 len(query_set)) + '; query = ' + str(q))
-            query_result_bx, bx_time = run_query(bxe, q, best_k=k, algo='bx', _lb_opt=_lb_opt, _radius=_radius)
+
+            if run_bruteforce:
+                query_result_bx, bx_time = run_query(bxe, q, best_k=k, algo='bx', _lb_opt=_lb_opt, _radius=_radius)
+
+            else:
+                query_result_bx, bx_time = [(np.NaN, None) for i in range(np.max(best_ks))], np.NaN
             q_records[str(q)]['bx_query_time'][k] = bx_time
             q_records[str(q)]['bx_match'][k] = query_result_bx
 

@@ -78,7 +78,8 @@ if __name__ == "__main__":
         'st': 0.1,
         'n_segment': 3,
         # 'test_option': 'BrainEX',
-        'test_option': 'BrainEXwithoutGenex',
+        # 'test_option': 'BrainEXwithoutGenex',
+        'test_option': 'BrainEXwithSAXPAAOnly',
 
         'cases_split': 0.01,
         'best_ks': [1, 5, 15]
