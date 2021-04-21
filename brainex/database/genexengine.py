@@ -525,7 +525,7 @@ class GenexEngine:
                 if len(best_matches) >= best_k:
                     break
                 this_c = heapq.heappop(candidates)
-                if overlap == 1.0 or exclude_same_id:  # needless to consider overlap if same if as already been excluded
+                if overlap == 1.0:  # needless to consider overlap if same if as already been excluded
                     best_matches.append(this_c)
                 else:  # if consider overlap
                     if not any(_isOverlap(this_c[1], prev_match[1], overlap) for prev_match in best_matches):
